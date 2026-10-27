@@ -14,14 +14,43 @@ import React from "react";
 import { useTheme } from '@mui/material/styles';
 import { settings } from "../settings/settings";
 
+// Read the optional `types` query param (e.g. ?types=work,project) and derive
+// which filters start active. No param = all active (default behaviour).
+// Keywords: work, project, education, prize (trailing "s" tolerated).
+function getInitialFilters() {
+  const all = { work: true, project: true, education: true, prize: true };
+  const raw = new URLSearchParams(window.location.search).get("types");
+  if (!raw) {
+    return all;
+  }
+  const selected = new Set(
+    raw
+      .split(",")
+      .map((t) => t.trim().toLowerCase().replace(/s$/, ""))
+      .filter(Boolean)
+  );
+  // Ignore an empty/unknown selection so the page never renders fully blank.
+  const known = ["work", "project", "education", "prize"];
+  if (!known.some((k) => selected.has(k))) {
+    return all;
+  }
+  return {
+    work: selected.has("work"),
+    project: selected.has("project"),
+    education: selected.has("education"),
+    prize: selected.has("prize"),
+  };
+}
+
 function TimelineView() {
   const data = timelineDataSorted();
   const theme = useTheme();
 
-  const [showProjects, setShowProjects] = useState(true);
-  const [showEducations, setShowEducations] = useState(true);
-  const [showPrizes, setShowPrizes] = useState(true);
-  const [showWorks, setShowWorks] = useState(true);
+  const [initialFilters] = useState(getInitialFilters);
+  const [showProjects, setShowProjects] = useState(initialFilters.project);
+  const [showEducations, setShowEducations] = useState(initialFilters.education);
+  const [showPrizes, setShowPrizes] = useState(initialFilters.prize);
+  const [showWorks, setShowWorks] = useState(initialFilters.work);
 
   const handleFilterToggle = useCallback((
     {targetState: targetState,
