@@ -29,17 +29,12 @@ function getInitialFilters() {
       .map((t) => t.trim().toLowerCase().replace(/s$/, ""))
       .filter(Boolean)
   );
+  const keys = Object.keys(all);
   // Ignore an empty/unknown selection so the page never renders fully blank.
-  const known = ["work", "project", "education", "prize"];
-  if (!known.some((k) => selected.has(k))) {
+  if (!keys.some((k) => selected.has(k))) {
     return all;
   }
-  return {
-    work: selected.has("work"),
-    project: selected.has("project"),
-    education: selected.has("education"),
-    prize: selected.has("prize"),
-  };
+  return Object.fromEntries(keys.map((k) => [k, selected.has(k)]));
 }
 
 function TimelineView() {
